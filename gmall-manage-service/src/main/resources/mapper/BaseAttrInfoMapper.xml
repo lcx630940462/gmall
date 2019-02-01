@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper SYSTEM "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 写接口mapper的全路径-->
+
+<mapper namespace="com.atguigu.gmall.manage.mapper.BaseAttrInfoMapper">
+   <!-- resultMap映射的结果集
+     id  resultMap的唯一标识
+     type  返回映射结果集的类型
+     autoMapping  true 自动映射实体类与数据库表
+     -->
+ <resultMap id="baseAttrInfoMap" type="com.atguigu.gmall.bean.BaseAttrInfo" autoMapping="true">
+
+     <!--id 标识主键
+        result 标识一般字段
+            property 表示 实体类中的属性名
+            column   表示通过sql语句查询出来的字段名
+     -->
+    <id property="id" column="id"></id>
+     <result property="attrName" column="attr_name"></result> <!--使用自动映射更加方便-->
+     <!--mybatis
+        一对多  如平台属性  平台属性值
+          private List<BaseAttrValue> attrValueList;
+          <collection property="类中的属性名" ofType="映射一对多，多的数据类型全类名"></collection>
+         多对一         <association property=""></association>
+         两个标签
+
+     -->
+    <collection property="attrValueList" ofType="com.atguigu.gmall.bean.BaseAttrValue" autoMapping="true">
+        <!--如果查询出的字段名称有冲突，要起别名 baseAttrValue.id =attr_value_id-->
+        <id property="id" column="attr_value_id"></id>
+    </collection>
+
+ </resultMap>
+     <!--id 表示方法名
+        resultMap 与上面的resultMap 的id一致
+        mybatis传入参数如何设置
+        方式一： 使用#{0} #{1} #{2}
+	    方式二： 使用@param（“catalog3Id”）在mapper接口参数列表中
+        -->
+    <select id="getBaseAttrInfoListByCatlog3Id" resultMap="baseAttrInfoMap">
+       SELECT
+           bai.id,
+           bai.attr_name,
+           bai.catalog3_id,
+           bav.id attr_value_id,
+           bav.value_name,
+           bav.attr_id
+        FROM
+          base_attr_info bai
+        INNER JOIN base_attr_value bav ON bai.id = bav.attr_id
+        WHERE
+           catalog3_id = #{0}
+    </select>
+
+    <!-- $ :表示 字符串 82,14,83,13，# 一个占位符-->
+    <select id="selectAttrInfoListByIds" resultMap="baseAttrInfoMap">
+         SELECT ai.id,ai.attr_name,ai.catalog3_id, av.id attr_value_id ,av.attr_id ,av.value_name
+            FROM base_attr_info ai INNER JOIN base_attr_value av ON ai.id=av.attr_id
+            WHERE av.id IN (${valueIds})
+    </select>
+
+</mapper>
